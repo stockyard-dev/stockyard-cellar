@@ -23,5 +23,24 @@ func now()string{return time.Now().UTC().Format(time.RFC3339)}
 func(d *DB)Create(e *Bottle)error{e.ID=genID();e.CreatedAt=now();_,err:=d.db.Exec(`INSERT INTO bottles(id,name,type,vintage,region,producer,quantity,rating,notes,price_paid,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?)`,e.ID,e.Name,e.Type,e.Vintage,e.Region,e.Producer,e.Quantity,e.Rating,e.Notes,e.PricePaid,e.CreatedAt);return err}
 func(d *DB)Get(id string)*Bottle{var e Bottle;if d.db.QueryRow(`SELECT id,name,type,vintage,region,producer,quantity,rating,notes,price_paid,created_at FROM bottles WHERE id=?`,id).Scan(&e.ID,&e.Name,&e.Type,&e.Vintage,&e.Region,&e.Producer,&e.Quantity,&e.Rating,&e.Notes,&e.PricePaid,&e.CreatedAt)!=nil{return nil};return &e}
 func(d *DB)List()[]Bottle{rows,_:=d.db.Query(`SELECT id,name,type,vintage,region,producer,quantity,rating,notes,price_paid,created_at FROM bottles ORDER BY created_at DESC`);if rows==nil{return nil};defer rows.Close();var o []Bottle;for rows.Next(){var e Bottle;rows.Scan(&e.ID,&e.Name,&e.Type,&e.Vintage,&e.Region,&e.Producer,&e.Quantity,&e.Rating,&e.Notes,&e.PricePaid,&e.CreatedAt);o=append(o,e)};return o}
+func(d *DB)Update(e *Bottle)error{_,err:=d.db.Exec(`UPDATE bottles SET name=?,type=?,vintage=?,region=?,producer=?,quantity=?,rating=?,notes=?,price_paid=? WHERE id=?`,e.Name,e.Type,e.Vintage,e.Region,e.Producer,e.Quantity,e.Rating,e.Notes,e.PricePaid,e.ID);return err}
 func(d *DB)Delete(id string)error{_,err:=d.db.Exec(`DELETE FROM bottles WHERE id=?`,id);return err}
 func(d *DB)Count()int{var n int;d.db.QueryRow(`SELECT COUNT(*) FROM bottles`).Scan(&n);return n}
+
+func(d *DB)Search(q string, filters map[string]string)[]Bottle{
+    where:="1=1"
+    args:=[]any{}
+    if q!=""{
+        where+=" AND (name LIKE ?)"
+        args=append(args,"%"+q+"%");
+    }
+    if v,ok:=filters["type"];ok&&v!=""{where+=" AND type=?";args=append(args,v)}
+    rows,_:=d.db.Query(`SELECT id,name,type,vintage,region,producer,quantity,rating,notes,price_paid,created_at FROM bottles WHERE `+where+` ORDER BY created_at DESC`,args...)
+    if rows==nil{return nil};defer rows.Close()
+    var o []Bottle;for rows.Next(){var e Bottle;rows.Scan(&e.ID,&e.Name,&e.Type,&e.Vintage,&e.Region,&e.Producer,&e.Quantity,&e.Rating,&e.Notes,&e.PricePaid,&e.CreatedAt);o=append(o,e)};return o
+}
+
+func(d *DB)Stats()map[string]any{
+    m:=map[string]any{"total":d.Count()}
+    return m
+}
