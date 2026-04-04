@@ -59,7 +59,7 @@ const dashHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="v
 <div class="modal-bg" id="mbg" onclick="if(event.target===this)closeModal()"><div class="modal" id="mdl"></div></div>
 <script>
 var A='/api',items=[],editId=null;
-async function load(){var r=await fetch(A+'/wines').then(function(r){return r.json()});items=r.wines||[];renderStats();render();}
+async function load(){var r=await fetch(A+'/bottles').then(function(r){return r.json()});items=r.bottles||[];renderStats();render();}
 function renderStats(){var total=items.length;var bottles=items.reduce(function(s,w){return s+(w.quantity||0)},0);
 var regions={};items.forEach(function(w){if(w.region)regions[w.region]=true});
 document.getElementById('stats').innerHTML='<div class="st"><div class="st-v">'+total+'</div><div class="st-l">Labels</div></div><div class="st"><div class="st-v">'+bottles+'</div><div class="st-l">Bottles</div></div><div class="st"><div class="st-v">'+Object.keys(regions).length+'</div><div class="st-l">Regions</div></div>';}
@@ -84,7 +84,7 @@ h+='</div>';
 if(w.notes)h+='<div class="wine-notes">'+esc(w.notes)+'</div>';
 h+='</div>';});
 document.getElementById('list').innerHTML=h;}
-async function del(id){if(!confirm('Remove?'))return;await fetch(A+'/wines/'+id,{method:'DELETE'});load();}
+async function del(id){if(!confirm('Remove?'))return;await fetch(A+'/bottles/'+id,{method:'DELETE'});load();}
 function formHTML(wine){var i=wine||{name:'',type:'red',vintage:0,region:'',producer:'',quantity:1,rating:0,notes:'',price_paid:0};var isEdit=!!wine;
 var h='<h2>'+(isEdit?'EDIT':'ADD')+' WINE</h2>';
 h+='<div class="fr"><label>Name *</label><input id="f-name" value="'+esc(i.name)+'"></div>';
@@ -103,8 +103,8 @@ function openEdit(id){var w=null;for(var j=0;j<items.length;j++){if(items[j].id=
 function closeModal(){document.getElementById('mbg').classList.remove('open');editId=null;}
 async function submit(){var name=document.getElementById('f-name').value.trim();if(!name){alert('Name required');return;}
 var body={name:name,type:document.getElementById('f-type').value,vintage:parseInt(document.getElementById('f-vintage').value)||0,region:document.getElementById('f-region').value.trim(),producer:document.getElementById('f-producer').value.trim(),quantity:parseInt(document.getElementById('f-qty').value)||1,rating:parseInt(document.getElementById('f-rating').value)||0,price_paid:Math.round(parseFloat(document.getElementById('f-price').value||0)*100),notes:document.getElementById('f-notes').value.trim()};
-if(editId){await fetch(A+'/wines/'+editId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
-else{await fetch(A+'/wines',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
+if(editId){await fetch(A+'/bottles/'+editId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
+else{await fetch(A+'/bottles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
 closeModal();load();}
 function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
