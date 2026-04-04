@@ -28,7 +28,12 @@ func(s *Server)get(w http.ResponseWriter,r *http.Request){e:=s.db.Get(r.PathValu
 func(s *Server)update(w http.ResponseWriter,r *http.Request){
     existing:=s.db.Get(r.PathValue("id"));if existing==nil{we(w,404,"not found");return}
     var patch store.Bottle;json.NewDecoder(r.Body).Decode(&patch);patch.ID=existing.ID;patch.CreatedAt=existing.CreatedAt
-    if patch.Name==""{patch.Name=existing.Name}
+    if patch.Name==""{
+patch.Name=existing.Name};if patch.Type==""{
+patch.Type=existing.Type};if patch.Region==""{
+patch.Region=existing.Region};if patch.Producer==""{
+patch.Producer=existing.Producer};if patch.Notes==""{
+patch.Notes=existing.Notes}
     s.db.Update(&patch);wj(w,200,s.db.Get(patch.ID))
 }
 func(s *Server)del(w http.ResponseWriter,r *http.Request){s.db.Delete(r.PathValue("id"));wj(w,200,map[string]string{"deleted":"ok"})}
